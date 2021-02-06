@@ -125,9 +125,6 @@ class MiscCog(commands.Cog, name="Miscellaneous functions"):
     @commands.command(name="annoyjosh")
     @commands.max_concurrency(1, wait=True)
     async def uhoh(self, ctx, youtube_link):
-        await ctx.message.delete()
-        await ctx.send("Fuck Off")
-        return
         josh = False
         if ctx.message.author.id == 216321712067706881:
             josh = True
@@ -137,11 +134,16 @@ class MiscCog(commands.Cog, name="Miscellaneous functions"):
             import requests
             import youtube_dl
             with youtube_dl.YoutubeDL() as ydl:
-                if ydl.extract_info(youtube_link, download=False).get("duration") > 30 and not josh:
-                    await ctx.send("Too Long.")
+                length = ydl.extract_info(youtube_link, download=False).get("duration") 
+                if length > 31 and not josh:
+                    await ctx.send(f"Too Long, length was {length}")
                     return
-            message = await ctx.send("Sending message. Will edit when finished.")
-            resp = requests.post(f"http://136.53.39.219/alert?url={youtube_link}&is_josh={josh}&password=L5FwBEZNxBE")
+            message = await ctx.send("Sending message")
+            resp = requests.post(f"http://192.168.86.69/alert?url={youtube_link}&is_josh={josh}&password=L5FwBEZNxBE")
+            
+            logging_channel = discord.utils.get(ctx.guild.channels, name="bot-logs")
+            await logging_channel.send(f"{ctx.author} sent a message\n{youtube_link}")
+
             await message.delete()
             await ctx.message.delete()
             return
