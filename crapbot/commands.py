@@ -125,6 +125,13 @@ class MiscCog(commands.Cog, name="Miscellaneous functions"):
     @commands.command(name="annoyjosh")
     @commands.max_concurrency(1, wait=True)
     async def uhoh(self, ctx, youtube_link):
+        import datetime
+
+        hour = datetime.datetime.now().hour
+        if hour-6 >= 2 and hour-6 <= 8:
+            await ctx.send("Hour is too unholy to annoy josh. Let me sleep please")
+            return
+
         josh = False
         if ctx.message.author.id == 216321712067706881:
             josh = True
