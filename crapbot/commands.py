@@ -1,7 +1,7 @@
 import os
 import logging
 import time
-from discord.ext import commands
+from discord.ext import commands, flags
 from .utils import *
 from .command_helpers import SoundHelpers
 
@@ -72,6 +72,23 @@ class MiscCog(commands.Cog, name="Miscellaneous functions"):
             time.sleep(1.2)
         return
 
+
+    @commands.command(name="eval")
+    async def evaluate(self, ctx, *, msg: str):
+        if ctx.author.id != 216321712067706881:
+            return
+        message = msg.split("```")[1]
+        if message.startswith("py"): message = message[2:]
+        if message.startswith("\n"): message = message[1:]
+        wrapper = f"async def _eval_exp():"
+        for line in message.splitlines():
+            wrapper += (f"\n\t{line}")
+        env = {"ctx": ctx}
+        exec(compile(wrapper, "trashname", "exec"), env)
+        await eval("_eval_exp()", env)
+        return
+
+
     @commands.command()
     async def owo(self, ctx, *args):
         await ctx.send(owoifier(" ".join(args)))
@@ -99,6 +116,86 @@ class MiscCog(commands.Cog, name="Miscellaneous functions"):
         art = Asciiifier(picture, flags["--more-detail"], flags["--cols"], flags["--scale"])
         await ctx.send(art.ascii_art)
 
+    @commands.command(name="derp", aliases=["d", "twitter"])
+    async def derpify(self, ctx, *, string):
+        from random import choice
+        await ctx.send(derp(string, choice([True, False])))
+        
+
+    @commands.command(name="annoyjosh")
+    @commands.max_concurrency(1, wait=True)
+    async def uhoh(self, ctx, youtube_link):
+        await ctx.message.delete()
+        await ctx.send("Fuck Off")
+        return
+        josh = False
+        if ctx.message.author.id == 216321712067706881:
+            josh = True
+        import re
+        pattern = re.compile(r"^(http(s)??\:\/\/)?(www\.)?((youtube\.com\/watch\?v=)|(youtu.be\/))([a-zA-Z0-9\-_])+")
+        if pattern.match(youtube_link):
+            import requests
+            import youtube_dl
+            with youtube_dl.YoutubeDL() as ydl:
+                if ydl.extract_info(youtube_link, download=False).get("duration") > 30 and not josh:
+                    await ctx.send("Too Long.")
+                    return
+            message = await ctx.send("Sending message. Will edit when finished.")
+            resp = requests.post(f"http://136.53.39.219/alert?url={youtube_link}&is_josh={josh}&password=L5FwBEZNxBE")
+            await message.delete()
+            await ctx.message.delete()
+            return
+        await ctx.send("Didn't match a youtube link")
+
+
+    @flags.add_flag("--previous", type=bool, default=False)
+    @flags.add_flag("--limit", type=int, default=50)
+    @flags.add_flag("--message", type=int, default=0)
+    @flags.command(name="purge")
+    @commands.max_concurrency(1, wait=True)
+    async def purge(self, ctx, member: discord.Member, **flags):
+        if ctx.author.id != 216321712067706881:
+            return 
+
+        previous_message = None
+        tagged_message = None 
+
+        if flags["previous"] and flags["message"]:
+            await ctx.send("Previous and Message are mutually exclusive. Use one or the other dipshit.")
+            return
+
+        if flags["message"] != 0:
+            tagged_message = await ctx.channel.fetch_message(flags["message"])
+            if not tagged_message:
+                await ctx.send(f"Could not find message wit that ID.")
+                return
+        
+        if flags["previous"]:
+            async for message in ctx.history(limit=flags["limit"]):
+                if message.author == member:
+                    previous_message = message
+                    break
+        if flags["previous"] and not previous_message:
+            await ctx.send(f"Could not find a message by {member.name}, try running the command with with a higher --limit.")
+        count = 0
+        async for message in ctx.history(limit=flags["limit"]):
+            if message.author == member:
+                if flags["previous"] and previous_message == message:
+                    await message.delete(delay=1)
+                    count += 1
+                elif flags["previous"] and previous_message != message:
+                    continue
+                elif tagged_message:
+                    if message.content == tagged_message.content:
+                        await message.delete(delay=1)
+                        count += 1
+                else:
+                    await message.delete(delay=1)
+                    count += 1
+
+        await ctx.send(f"Deleted {count} messages")
+
+
     @ascii.error
     async def info_error(self, ctx, error):
         if "message" in dir(error.original):
@@ -106,6 +203,5 @@ class MiscCog(commands.Cog, name="Miscellaneous functions"):
         else:
             logging.info(error)
             await ctx.send("An error has occured. Sorry can't be less secure. ask the developer.")
-        
 
-    
+

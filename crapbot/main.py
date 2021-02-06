@@ -3,11 +3,12 @@ from .commands import SoundsCog, MiscCog
 from .config import Config
 from discord.ext import commands
 import os
-TOKEN = open(os.path.join(Config.BOT_DIRECTORY, "token"))
+import discord
+TOKEN = open(os.path.join(Config.BOT_DIRECTORY, "token")).read()
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    lenin_bot = commands.Bot(Config.prefix)
+    lenin_bot = commands.Bot(Config.prefix, intents=discord.Intents.all())
     lenin_bot.add_cog(SoundsCog(lenin_bot))
     lenin_bot.add_cog(MiscCog(lenin_bot))
     lenin_bot.run(TOKEN)

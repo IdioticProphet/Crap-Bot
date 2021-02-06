@@ -206,3 +206,21 @@ def is_valid_link(string):
     if re.match(regex, string) is not None:
         return True
     return False
+
+def derp(string, n=False):
+    string = string.lower()
+    ret = []
+    if " " in string:
+        string = string.split(" ")
+        for split in string:
+            ret.append(derp(split))
+    else:
+        for letter in string:
+            if not n:
+                n = not n
+                ret.append(letter.lower())
+            elif n:
+                n = not n
+                ret.append(letter.upper())
+        return "".join(ret)
+    return " ".join(ret)
