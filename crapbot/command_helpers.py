@@ -1,7 +1,9 @@
-from .utils import *
-from .exceptions import *
+import os
+import tempfile
+
 from .config import Config
-import tempfile, os, re
+from .exceptions import *
+from .utils import *
 
 
 class SoundHelpers:
@@ -10,7 +12,7 @@ class SoundHelpers:
         When arriving at this function, args should be length of 1
         The argument should also be the soundname.
         """
-        sound_maps=return_sound_maps()
+        sound_maps = return_sound_maps()
         if args[0] not in sound_maps.keys():
             raise SoundNotFound("Sound Doesnt Exist.")
         try:
@@ -20,12 +22,14 @@ class SoundHelpers:
                 raise NotInVoice("You are not in a voice channel.")
         bot_member = ctx.guild.get_member(ctx.bot.user.id)
         try:
-            source = return_sound_player(os.path.join(Config.BOT_SOUND_DIR, sound_maps[args[0]]))
+            source = return_sound_player(
+                os.path.join(Config.BOT_SOUND_DIR, sound_maps[args[0]]))
         except FileNotFoundError:
-            raise SoundNotFound("Couldn't find sound file... This shouldn't happen!")
+            raise SoundNotFound(
+                "Couldn't find sound file... This shouldn't happen!")
         await play_sound(voice_channel, source, bot_member)
         return
-        
+
     async def sound_list(ctx, *args):
         """
         Lists the sounds that are listed in the config.
@@ -36,7 +40,7 @@ class SoundHelpers:
             return
         await ctx.send(f'Sounds that I Know:\n{", ".join(sound_maps.keys())}')
         return
-    
+
     async def sound_add(ctx, *args):
         # TODO: Add support for youtube links
         sound_maps = return_sound_maps()
@@ -67,14 +71,14 @@ class SoundHelpers:
         bot_member = ctx.guild.get_member(ctx.bot.user.id)
         tts_message = args[-1].replace("\n", " ").strip('')
         voice_person = "Brian"
-        link = f"https://api.streamelements.com/kappa/v2/speech?voice={voice_person}&text="+tts_message
+        link = f"https://api.streamelements.com/kappa/v2/speech?voice={voice_person}&text=" + tts_message
         with tempfile.NamedTemporaryFile(suffix=".mp3") as tmpfile:
             resp = requests.get(link)
             tmpfile.write(resp.content)
             source = return_sound_player(tmpfile.name)
             await play_sound(voice_channel, source, bot_member)
             tmpfile.close()
-            
+
     async def sound_remove(ctx, *args):
         """
         Removes sound from list, 
@@ -86,6 +90,3 @@ class SoundHelpers:
         except:
             raise
         await ctx.send("Sound Was Deleted Successfully.")
-        
-
-        

@@ -1,10 +1,14 @@
 import logging
-from .commands import SoundsCog, MiscCog
-from .config import Config
-from discord.ext import commands
 import os
+
 import discord
+from discord.ext import commands
+
+from .commands import MiscCog, SoundsCog
+from .config import Config
+
 TOKEN = open(os.path.join(Config.BOT_DIRECTORY, "token")).read()
+
 
 def main():
     logging.basicConfig(level=logging.INFO)
@@ -12,6 +16,7 @@ def main():
     lenin_bot.add_cog(SoundsCog(lenin_bot))
     lenin_bot.add_cog(MiscCog(lenin_bot))
     lenin_bot.run(TOKEN)
+
 
 if __name__ == "__main__":
     main()
